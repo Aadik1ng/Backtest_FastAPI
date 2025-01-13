@@ -126,9 +126,10 @@ class Backtester:
         graph_path = os.path.join('results', f'{self.symbol}_bollinger_bands.png')
         plt.savefig(graph_path)  # Save the figure to PNG before calling plt.show()
         print(f"Graph saved to {graph_path}")
+        graph_url = f"/static/{self.symbol}_bollinger_bands.png"
+        return graph_url
 
-        # Show the plot after saving
-        plt.show()
+        
 
 
 router = APIRouter()
