@@ -1,2 +1,7 @@
 Backtest/
 data/
+test/
+__pycache__/
+scrap.py
+*.txt
+results/

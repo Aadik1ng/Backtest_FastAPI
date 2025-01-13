@@ -2,80 +2,63 @@ import os
 import pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
+from fastapi import APIRouter, HTTPException
+from app.routers.data_ingestion import DataIngestion
 
 class Backtester:
-    def __init__(self, symbol, data, rolling_window=3, price_deviation=0.03):
+    def __init__(self, symbol, data, rolling_window=20, price_deviation=0.03):
         self.symbol = symbol
-        self.data = data
+        self.data = data.copy()
         self.rolling_window = rolling_window
         self.price_deviation = price_deviation
         self.results = []
 
     def calculate_bollinger_bands(self):
-        """Calculate the Bollinger Bands (SMA, UpperBand, LowerBand)"""
         self.data['MA'] = self.data['close'].rolling(window=self.rolling_window).mean()
         self.data['StdDev'] = self.data['close'].rolling(window=self.rolling_window).std()
         self.data['UpperBand'] = self.data['MA'] + (self.data['StdDev'] * 1)
         self.data['LowerBand'] = self.data['MA'] - (self.data['StdDev'] * 1)
 
     def run_backtest(self):
-        """Run the backtest logic with trades worth 100 USD each"""
-        self.results = []
-        holdings = 0  # Tracks the value of tokens held in USD
-        token_holdings = 0  # Tracks the quantity of tokens held
+        holdings = 0
+        token_holdings = 0
 
         for i in range(1, len(self.data)):
             current = self.data.iloc[i]
-
-            # Buy signal: Close price falls below the lower band
-            if current['close'] < current['LowerBand'] and token_holdings == 0:
-                tokens_to_buy = 100 / current['close']  # Buy tokens worth 100 USD
+            if current['close'] < (current['LowerBand'] * (1 - self.price_deviation)) and token_holdings == 0:
+                tokens_to_buy = 100 / current['close']
                 token_holdings += tokens_to_buy
-                holdings = 100  # Record the USD equivalent of the purchase
                 self.results.append({
-                    'timestamp': current.name,
-                    'action': 'Buy',
-                    'price': current['close'],
-                    'tokens_bought': tokens_to_buy,
-                    'holdings_usd': holdings
+                    'token': self.symbol,
+                    'date_in': current.name,
+                    'buy_price': current['close'],
+                    'date_out': None,
+                    'sell_price': None,
+                    'profit_percentage': None
                 })
-                print(f"Buy: {current.name} at {current['close']}, Tokens Bought: {tokens_to_buy:.6f}")
 
-            # Sell signal: Close price rises above the upper band
             elif current['close'] > current['UpperBand'] and token_holdings > 0:
-                sell_value = token_holdings * current['close']  # Calculate the value of tokens sold
-                self.results.append({
-                    'timestamp': current.name,
-                    'action': 'Sell',
-                    'price': current['close'],
-                    'tokens_sold': token_holdings,
-                    'sell_value': sell_value
+                last_buy = self.results[-1]
+                profit = (current['close'] - last_buy['buy_price']) / last_buy['buy_price'] * 100
+                last_buy.update({
+                    'date_out': current.name,
+                    'sell_price': current['close'],
+                    'profit_percentage': profit
                 })
-                print(f"Sell: {current.name} at {current['close']}, Tokens Sold: {token_holdings:.6f}, Sell Value: {sell_value:.2f}")
-                holdings = 0  # Reset holdings after the sale
                 token_holdings = 0
 
-        # Liquidate remaining holdings at the end of the period
+        # Liquidate at the end of the backtest period
         if token_holdings > 0:
             final_price = self.data.iloc[-1]['close']
-            sell_value = token_holdings * final_price
-            self.results.append({
-                'timestamp': self.data.index[-1],
-                'action': 'Sell (End of Period)',
-                'price': final_price,
-                'tokens_sold': token_holdings,
-                'sell_value': sell_value
+            last_buy = self.results[-1]
+            profit = (final_price - last_buy['buy_price']) / last_buy['buy_price'] * 100
+            last_buy.update({
+                'date_out': self.data.index[-1],
+                'sell_price': final_price,
+                'profit_percentage': profit
             })
-            print(f"Final Sell: {self.data.index[-1]} at {final_price}, Tokens Sold: {token_holdings:.6f}, Sell Value: {sell_value:.2f}")
-            token_holdings = 0
 
-        # Convert results to a DataFrame
-        self.results_df = pd.DataFrame(self.results)
-
-    
-    
     def get_results(self):
-        """Return backtest results as a DataFrame"""
         return pd.DataFrame(self.results)
 
     def plot_bollinger_bands(self):
@@ -148,3 +131,19 @@ class Backtester:
         plt.show()
 
 
+router = APIRouter()
+
+@router.post("/run/")
+def run_backtest(symbol: str, rolling_window: int = 20, price_deviation: float = 0.03):
+    """
+    Run the backtest for the given symbol and parameters.
+    """
+    data = DataIngestion().load_data(symbol)
+    if data is None:
+        raise HTTPException(status_code=404, detail=f"No data found for {symbol}. Please fetch data first.")
+    
+    backtester = Backtester(symbol, data, rolling_window, price_deviation)
+    backtester.calculate_bollinger_bands()
+    backtester.run_backtest()
+    backtester.save_results()
+    return {"message": f"Backtest completed for {symbol}.", "results": backtester.get_results().to_dict(orient="records")}
