@@ -1,4 +1,10 @@
 fastapi
 uvicorn
+jose
+passlib[bcrypt]
+nltk
 pandas
+matplotlib
+seaborn
+python-dotenv
 requests
