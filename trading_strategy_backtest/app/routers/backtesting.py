@@ -21,19 +21,32 @@ class Backtester:
     def run_backtest(self):
         """Run the backtest and apply the strategy"""
         self.calculate_bollinger_bands()
-
+        holdings = 0 
         for i in range(1, len(self.data)):
             current = self.data.iloc[i]
             previous = self.data.iloc[i-1]
 
             # Buy signal: price falls 3% below the lower band
-            if current['close'] < current['LowerBand'] * (1 - self.price_deviation):
+            if current['close'] < current['LowerBand'] * (1 - self.price_deviation) and holdings == 0:
+                holdings += 100
                 self.results.append({'timestamp': current.name, 'action': 'Buy', 'price': current['close']})
 
             # Sell signal: price touches or exceeds the upper band
             elif current['close'] >= current['UpperBand']:
+                holdings -= 100
                 self.results.append({'timestamp': current.name, 'action': 'Sell', 'price': current['close']})
-
+            
+        if holdings:
+            final_price = self.data.iloc[-1]['close']
+            self.results.append({
+                'timestamp': self.data.index[-1],
+                'action': 'Sell (End of Period)',
+                'price': final_price
+            })
+            print(f"Final Sell: {self.data.index[-1]} at {final_price}")
+            holdings = 0
+    
+    
     def get_results(self):
         """Return backtest results as a DataFrame"""
         return pd.DataFrame(self.results)
