@@ -123,9 +123,11 @@ class Backtester:
         plt.tight_layout()
 
         # Save the graph as a PNG file with the same name
-        graph_path = os.path.join('results', f'{self.symbol}_bollinger_bands.png')
-        plt.savefig(graph_path)  # Save the figure to PNG before calling plt.show()
-        print(f"Graph saved to {graph_path}")
+        if not os.path.exists('results'):
+            os.makedirs('results')
+            graph_path = os.path.join('results', f'{self.symbol}_bollinger_bands.png')
+            plt.savefig(graph_path)  # Save the figure to PNG before calling plt.show()
+            print(f"Graph saved to {graph_path}")
         graph_url = f"/static/{self.symbol}_bollinger_bands.png"
         print(graph_url)
         return graph_url
