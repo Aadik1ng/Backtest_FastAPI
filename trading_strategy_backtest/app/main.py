@@ -1,9 +1,15 @@
 from fastapi import FastAPI
+import os
 from app.routers import data_ingestion, backtesting
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
+if not os.path.exists('results'):
+    os.makedirs('results')
+
 app = FastAPI()
+
+
 
 # Include routers
 app.include_router(data_ingestion.router, prefix="/data", tags=["Data Ingestion"])
