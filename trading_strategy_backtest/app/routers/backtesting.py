@@ -127,6 +127,7 @@ class Backtester:
         plt.savefig(graph_path)  # Save the figure to PNG before calling plt.show()
         print(f"Graph saved to {graph_path}")
         graph_url = f"/static/{self.symbol}_bollinger_bands.png"
+        print(graph_url)
         return graph_url
 
         

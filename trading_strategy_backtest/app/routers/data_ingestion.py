@@ -6,7 +6,10 @@ import requests
 from datetime import datetime
 from fastapi import APIRouter, HTTPException
 from app.utils import FetchDataRequest  # Importing FetchDataRequest from utils.py
-
+proxies = {
+    'http': 'http://103.143.168.58:84',
+    'https': 'http://152.32.129.54:8090'
+}
 class DataIngestion:
     DATA_DIR = "data"
     BASE_URL = "https://api.binance.com/api/v3/klines"
@@ -22,7 +25,7 @@ class DataIngestion:
             "startTime": int(start_date.timestamp() * 1000),
             "endTime": int(end_date.timestamp() * 1000),
         }
-        response = requests.get(self.BASE_URL, params=params)
+        response = requests.get(self.BASE_URL, params=params,proxies=proxies)
         response.raise_for_status()  # Raise an exception for bad responses
         return response.json()
 
