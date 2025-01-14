@@ -6,6 +6,8 @@ This project provides a FastAPI-based backend for backtesting trading strategies
 
 ### Runnig:- https://backtestfastapi-production.up.railway.app/docs#
 
+To test use [BTCUSDT,ADAUSDT,ETHUSDT] only as symbols
+
 ## Features
 
 1. **Data Ingestion**:
