@@ -123,11 +123,9 @@ class Backtester:
         plt.tight_layout()
 
         # Save the graph as a PNG file with the same name
-        if not os.path.exists('results'):
-            os.makedirs('results')
-            graph_path = os.path.join('results', f'{self.symbol}_bollinger_bands.png')
-            plt.savefig(graph_path)  # Save the figure to PNG before calling plt.show()
-            print(f"Graph saved to {graph_path}")
+        graph_path = os.path.join('results', f'{self.symbol}_bollinger_bands.png')
+        plt.savefig(graph_path)  # Save the figure to PNG before calling plt.show()
+        print(f"Graph saved to {graph_path}")
         graph_url = f"/static/{self.symbol}_bollinger_bands.png"
         print(graph_url)
         return graph_url
@@ -149,5 +147,5 @@ def run_backtest(symbol: str, rolling_window: int = 20, price_deviation: float =
     backtester = Backtester(symbol, data, rolling_window, price_deviation)
     backtester.calculate_bollinger_bands()
     backtester.run_backtest()
-    backtester.save_results()
-    return {"message": f"Backtest completed for {symbol}.", "results": backtester.get_results().to_dict(orient="records")}
+    graph_url=backtester.save_results()
+    return {"message": f"Backtest completed for {symbol}.", "graph_url": graph_url}
