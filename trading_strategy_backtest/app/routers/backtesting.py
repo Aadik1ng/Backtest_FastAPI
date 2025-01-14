@@ -148,4 +148,4 @@ def run_backtest(symbol: str, rolling_window: int = 20, price_deviation: float =
     backtester.calculate_bollinger_bands()
     backtester.run_backtest()
     graph_url=backtester.save_results()
-    return {"message": f"Backtest completed for {symbol}.", "graph_url": "https://backtestfastapi-production.up.railway.app/"+graph_url}
+    return {"message": f"Backtest completed for {symbol}.", "graph_url": "https://backtestfastapi-production.up.railway.app"+graph_url}
