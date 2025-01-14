@@ -4,6 +4,8 @@
 
 This project provides a FastAPI-based backend for backtesting trading strategies using historical market data. The application includes modules for data ingestion, backtesting, and result visualization, with a focus on Bollinger Bands-based strategies.
 
+### Runnig:- https://backtestfastapi-production.up.railway.app/docs#
+
 ## Features
 
 1. **Data Ingestion**:
