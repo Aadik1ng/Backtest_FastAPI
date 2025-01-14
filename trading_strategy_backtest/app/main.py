@@ -14,7 +14,7 @@ app = FastAPI()
 # Include routers
 app.include_router(data_ingestion.router, prefix="/data", tags=["Data Ingestion"])
 app.include_router(backtesting.router, prefix="/backtest", tags=["Backtesting"])
-app.mount("/static", StaticFiles(directory="results"), name="static")
+app.mount("/static", StaticFiles(directory=os.path.abspath("results")), name="static")
 
 # Update CORS middleware to allow your Vercel frontend
 
