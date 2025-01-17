@@ -25,9 +25,6 @@ To test use [BTCUSDT,ADAUSDT,ETHUSDT] only as symbols
 4. **Static File Hosting**:
    - Host backtest results and plots via the `/static` endpoint.
 
-5. **Frontend Integration**:
-   - Cross-Origin Resource Sharing (CORS) enabled for integration with frontend applications.
-
 ---
 
 ## API Endpoints
